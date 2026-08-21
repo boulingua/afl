@@ -40,8 +40,9 @@ technical showcase for the platform's RTL capability.
 3. **Vocalisation (tashkīl / حركات)** — beginner text needs full short-vowel
    diacritics; intermediate text sheds them. Every layer (web font, LaTeX,
    Piper) must render and pronounce vocalised text correctly.
-4. **Native-voice TTS** — verifying an openly-licensed Arabic Piper voice that
-   pronounces vocalised MSA acceptably (see §2/§6).
+4. **No openly-licensed Arabic voice** — the catalogue's only Arabic speaker
+   states no usable licence, so audio is recorded or transcript-only, not
+   synthesised (see §2/§6).
 5. **Bidi mixing** — Latin scaffolding prose, transliteration, numerals and
    Arabic runs coexist on one page; the bidirectional algorithm must be driven,
    not left to chance.
@@ -84,14 +85,29 @@ Concrete, opinionated calls to make before authoring a single unit.
   full vocalisation marks. Latin text keeps the template's Source Sans 3. Self-
   host WOFF2 under `static/fonts/`; declare `unicode-range` so Arabic glyphs
   come from Noto Naskh and Latin from Source Sans.
-- **TTS → Piper `ar_JO-kareem` (Jordanian Arabic, MIT-compatible OFL data).**
-  *Recommended, pending an authoring smoke-test.* It is the openly-licensed
-  Arabic voice in `rhasspy/piper-voices`; Jordanian phonology sits close to the
-  Levantine framing. **Verify before committing audio:** (a) it reads
-  fully-vocalised MSA acceptably, (b) hamza/tā' marbūṭa/shadda are honoured. If
-  quality on vocalised MSA is poor, fall back to recorded human audio for
-  A1 core vocabulary and mark audiogen coverage as partial. Add the voice to
-  `audiogen`'s voice table + `get_voices.sh`.
+- **TTS → none. Arabic audio is recorded or transcript-only.** *Decided on
+  licence, not on quality.* `rhasspy/piper-voices` ships two Arabic voices,
+  `ar_JO-kareem-low` and `ar_JO-kareem-medium` — the same speaker at two tiers.
+  Both model cards state `License: See URL`, pointing at a training repository
+  that carries no licence statement of its own, and "no statement" is not
+  permission: neither can go inside a CC BY-SA 4.0 work. An earlier draft of
+  this document described the voice as "MIT-compatible OFL data"; that is wrong
+  twice over — the dataset states nothing, and OFL is a font licence with no
+  application to a speech corpus. **The voice must not be wired.** The fallback
+  ladder ends immediately: there is no second Arabic speaker and no other `ar_*`
+  locale in the catalogue, and substituting a neighbouring language's voice is
+  forbidden org-wide. So A1 core vocabulary and dialogue ship as **recorded
+  human audio** where a native reader can be arranged, everything else ships
+  **transcript-only**, and audiogen coverage is declared partial. The voice is
+  also Jordanian rather than MSA, which would have been a separate problem.
+  Revisit if upstream adds an Arabic voice with a stated licence.
+- **Voice IDs are never hand-typed.** Every voice ID, tier and licence position
+  in this document is read from `audiogen/voices.yml` (relocating to
+  `kit/audio/voices.yml` at F1), which is the single source of truth; `afl`'s
+  row there is `status: none`, with both rejected `ar_JO` voices kept as
+  alternatives so the licence position stays auditable. A voice ID typed from
+  memory or transliterated into ASCII is how a 404 gets written into a download
+  script.
 
 ---
 
@@ -157,10 +173,14 @@ marked values.
   `conformance.yml` (mirroring `curriculum/examples/de-a1/`): `framework:
   boulingua-curriculum`, `framework_version`, `language: ar`, `level: A1`
   (then A2, B1), `declared_conformance: core`, and `realizations:` mapping each
-  `implements_id` to its Arabic can-do. It must pass
-  `curriculum/scripts/id-audit.sh` (format, global uniqueness, every
-  `implements:` resolves to a real in-scope (scale, level)). Wire this as an
-  opt-in CI gate.
+  `implements_id` to its Arabic can-do.
+- **Gate.** The reusable workflow
+  `boulingua/.github/.github/workflows/course-build.yml@v1` runs
+  `python .curriculum/scripts/conformance_audit.py resolve --manifest
+  conformance.yml --content content` — format, global uniqueness, and every
+  `implements:` resolving to a real in-scope (scale, level) **in this repo**.
+  `id-audit.sh` audits the framework's *own* level files and **cannot** validate
+  this repo. Do not wire it here.
 
 ---
 
@@ -194,11 +214,12 @@ unit incl. materials + audio.
   numerals & the calendar, assessment rubrics. Effort **M–L**.
 - **Acceptance criteria per phase:** every unit has (1) filled `curriculum`
   block with resolvable descriptor IDs, (2) `skills_focus` set, (3) committed
-  slide deck + worksheet with thumbnails, (4) native-voice audio for vocab &
-  dialogue (or a recorded-audio fallback flagged), (5) all Arabic wrapped
+  slide deck + worksheet with thumbnails, (4) recorded audio for vocab &
+  dialogue where a reader is available, else a flagged transcript (§2 — no
+  licence-clear Arabic voice exists), (5) all Arabic wrapped
   `dir="rtl" lang="ar"`, (6) a registered VG Wort mark (§7), (7) green build
   with all gates. A phase is "done" when its section landing lists every unit +
-  exam and `conformance.yml` passes `id-audit.sh` at that level.
+  exam and `conformance.yml` resolves at that level under the §4 gate.
 
 ---
 
@@ -221,11 +242,16 @@ unit incl. materials + audio.
   with `build_materials_latex.py`; commit PDFs under `static/materials/` (+ ODP
   editable decks) and exam PDFs under `static/downloads/`. CI only verifies — no
   TeX Live in the deploy path.
-- **Native-voice audio.** `audiogen` / Piper `ar_JO-kareem` → OGG/Opus committed
-  under `static/materials/audio/` and referenced via the `audio-block` partial.
-  **Decision/availability note:** the Arabic Piper voice must pass the vocalised-
-  MSA smoke-test in §2 before bulk generation; if it fails, ship recorded human
-  audio for A1 core and mark audiogen coverage partial in the phase acceptance.
+- **Audio — blocked on licence, not on tooling.** No Arabic Piper voice carries
+  a usable licence (§2), so `afl` ships **recorded human audio** for A1 core
+  vocabulary and dialogue where a native reader can be arranged and
+  **transcript-only** elsewhere; audiogen coverage is declared partial in every
+  phase acceptance. Keep the plumbing as specified — OGG/Opus committed under
+  `static/materials/audio/`, referenced through the `audio-block` partial, with
+  the unit page rendering its `<details>` transcript and no player where there
+  is no file — so that a future licence-clear `ar_*` voice drops in without a
+  content change. `afl`'s row in `audiogen/voices.yml` (→ `kit/audio/voices.yml`
+  at F1) is the one place that changes when it does; the ID is never typed here.
 - **Thumbnails & downloads.** `render_thumbs.py` for deck/worksheet previews;
   `verify_downloads.py` gate confirms every referenced material exists and is
   attributed. Downloads hub and materials hub carry **no** VG Wort pixel (§7).
@@ -272,13 +298,14 @@ reader.
 - **M0 — Instantiation (S/M).** §3 complete: site copied, `hugo.toml` set, brand
   regenerated, legal filled, first green Pages deploy. *Depends on:* nothing.
 - **M1 — RTL foundation (L).** Arabic web fonts self-hosted, `{{< ar >}}`
-  shortcode, RTL/bidi CSS layer, slidegen/sheetgen Arabic branch, Piper voice
-  verified. *Depends on:* M0. **This is the gating technical milestone** — no
+  shortcode, RTL/bidi CSS layer, slidegen/sheetgen Arabic branch, audio route
+  settled per §2. *Depends on:* M0. **This is the gating technical milestone** — no
   content authoring at scale until RTL renders correctly on site and in PDFs.
 - **M2 — Script stage live (M).** `content/script/` (6–8 units) + glossary +
   pronunciation appendix, materials, audio, VG Wort marks. *Depends on:* M1.
-- **M3 — MVP: A1 live (L).** 10–12 A1 units + exams + `conformance.yml` passing
-  `id-audit.sh` at A1. *Depends on:* M2. **First flip-worthy state.**
+- **M3 — MVP: A1 live (L).** 10–12 A1 units + exams + `conformance.yml`
+  resolving at A1 under the §4 gate. *Depends on:* M2. **First flip-worthy
+  state.**
 - **M4 — A2 (L).** *Depends on:* M3.
 - **M5 — B1 + full appendices (L).** `declared_conformance: core` complete.
   *Depends on:* M4.
@@ -296,9 +323,12 @@ complete" is **M5** (A1–B1 `core`).
 - **Medium language (en vs de).** Recommended `en` for chrome consistency and
   reach; the Gesamtschule audience argues for German scaffolding. Decide before
   M2 — switching medium after content exists is costly. *(Open.)*
-- **Piper Arabic quality on vocalised MSA.** Highest content risk. If the
-  smoke-test fails, audio scope narrows to recorded A1 core. Mitigate early in
-  M1.
+- **Arabic TTS is closed by licence, not open on quality.** Both upstream
+  `ar_JO` voices state `License: See URL` against a source that licenses
+  nothing, so neither can ship inside a CC BY-SA 4.0 course (§2). *(Decided —
+  no Piper audio.)* What stays open is **sourcing a native reader** for A1 core
+  audio and deciding how much of the course is transcript-only; settle it in M1
+  so the phase acceptance in §5 is not written twice.
 - **hugo-coder RTL completeness.** The theme may not fully support `dir=rtl`
   chrome; the English-chrome + wrapped-Arabic approach sidesteps most of this,
   but audit navbar, ToC and footer under mixed bidi. *(Risk.)*
