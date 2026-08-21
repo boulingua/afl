@@ -4,8 +4,8 @@ Build plan for the boulingua Arabic-as-a-Foreign-Language course (`afl`,
 signature accent `#4A23C7` light / `#977EE7` dark, hover `#3B1CA0`, pentagon
 mark). This repo is currently a scaffold (LICENSE, README, brand icons) and is
 flagged "coming soon" on the world map. This document is the actionable plan to
-build the **entire** course — content and website — from the `pagegen` template
-and the `curriculum` framework, conforming to the boulingua standards.
+build the **entire** course — content and website — on the `kit` platform and
+the `curriculum` framework, conforming to the boulingua standards.
 
 ---
 
@@ -82,9 +82,10 @@ Concrete, opinionated calls to make before authoring a single unit.
 - **Web font → Noto Naskh Arabic** (SIL OFL) as primary Arabic face, subsetted
   and self-hosted (CSP/offline-safe, no external fetch), with **Amiri** (OFL) as
   an optional display face for headings/Qur'anic-style specimens. Both cover
-  full vocalisation marks. Latin text keeps the template's Source Sans 3. Self-
-  host WOFF2 under `static/fonts/`; declare `unicode-range` so Arabic glyphs
-  come from Noto Naskh and Latin from Source Sans.
+  full vocalisation marks. Latin text keeps the template's Source Sans 3. These faces are added to the kit's font
+  manifest (F3), which builds the subsets and emits the `unicode-range` declarations
+  so Arabic glyphs come from Noto Naskh and Latin from Source Sans. Not self-hosted
+  here: a course repo carries no `static/fonts/` and no `assets/css/`.
 - **TTS → none. Arabic audio is recorded or transcript-only.** *Decided on
   licence, not on quality.* `rhasspy/piper-voices` ships two Arabic voices,
   `ar_JO-kareem-low` and `ar_JO-kareem-medium` — the same speaker at two tiers.
@@ -98,12 +99,12 @@ Concrete, opinionated calls to make before authoring a single unit.
   locale in the catalogue, and substituting a neighbouring language's voice is
   forbidden org-wide. So A1 core vocabulary and dialogue ship as **recorded
   human audio** where a native reader can be arranged, everything else ships
-  **transcript-only**, and audiogen coverage is declared partial. The voice is
+  **transcript-only**, and audio coverage is declared partial. The voice is
   also Jordanian rather than MSA, which would have been a separate problem.
   Revisit if upstream adds an Arabic voice with a stated licence.
 - **Voice IDs are never hand-typed.** Every voice ID, tier and licence position
-  in this document is read from `audiogen/voices.yml` (relocating to
-  `kit/audio/voices.yml` at F1), which is the single source of truth; `afl`'s
+  in this document is read from `kit/audio/voices.yml`, which is the single
+  source of truth and must never be hand-copied into prose; `afl`'s
   row there is `status: none`, with both rejected `ar_JO` voices kept as
   alternatives so the licence position stays auditable. A voice ID typed from
   memory or transliterated into ASCII is how a 404 gets written into a download
@@ -111,38 +112,62 @@ Concrete, opinionated calls to make before authoring a single unit.
 
 ---
 
-## 3. Instantiation from pagegen
+## 3. Instantiation from the kit
 
-Stand up the site by copying the template verbatim, then changing only the
-marked values.
+Stand up the site by building the repo *around* the kit, then changing only the
+marked values. Nothing shared is copied.
 
-1. **Copy the template** into this repo (preserve the existing `brand/`,
-   `LICENSE`, `README.md`, `ROADMAP.md`): bring over `hugo.toml`, `go.mod`,
-   `archetypes/`, `content/`, `layouts/`, `assets/`, `data/`, `i18n/`,
-   `static/`, `scripts/`, `.github/`, `lychee.toml`, `.gitignore`,
-   `.gitattributes`, `.nojekyll`, `LICENSE-CONTENT.md`, `CITATION.cff`.
-2. **Edit `hugo.toml`** — change only the marked keys:
+1. **Create the course repo** (preserve the existing `brand/`, `LICENSE`,
+   `README.md`, `ROADMAP.md`). What `afl` holds is: a short `hugo.toml` —
+   baseURL, title, languageCode, `[params]`, menus, and the module import
+
+   ```toml
+   [module]
+     [[module.imports]]
+       path = "github.com/boulingua/kit"
+   ```
+
+   — a `go.mod`/`go.sum` requiring `github.com/boulingua/kit` at the pinned tag
+   (`v1.0.0`), `boulingua.yml` (the per-course config the gate battery reads),
+   the twelve-line `.github/workflows/deploy.yml` that calls the org's reusable
+   workflow, an empty `content/` skeleton, and the legal pages + `about/`.
+   `layouts/`, `assets/`, `i18n/`, `archetypes/` and `scripts/` are **not**
+   copied and must never appear in this repo: they are the drift surface, and a
+   file that is not here cannot fork. Hugo resolves the first four from the
+   module; CI checks the kit out at the pinned tag so `scripts/` and the gate
+   battery are on disk before Hugo runs.
+2. **Vendor `_materials/`** — run `kit materials sync`, which assembles the
+   kit's `latex/`, `fonts/` and `brand/icons/` into the flat `_materials/` tree
+   the LaTeX build expects, and commit the result. This is the one vendored
+   surface, because XeLaTeX cannot read a Hugo module; every file in it is
+   verified against the digests in `kit.lock`, so a hand-edit fails the build
+   rather than forking silently. (Earlier drafts said to copy `_materials/` from
+   the template — `pagegen` never had one to copy.)
+3. **Edit `hugo.toml`** — change only the marked keys:
    - `baseURL = "https://boulingua.github.io/afl/"`
    - `title = "Arabic (MSA) — S. Le Boulanger"`
    - `languageCode = "en"` and `defaultContentLanguage = "en"` (see §2/§9)
    - `[params].navTitle = "Arabic"`, `description`, `keywords`
      (`arabic,MSA,fusha,CEFR,RTL,course,OER`)
-   - `params.code = "afl"` (selects the accent from `data/accents.yaml`)
+   - `params.code = "afl"` — selects the accent from the kit's
+     `data/accents.yaml`. Set it: the kit ships the neutral graphite `template`
+     accent as its default, so an unconfigured course looks obviously wrong
+     rather than looking like DaF.
    - `[[params.social]].url = "https://github.com/boulingua/afl"`
    - `[params.plausible].domain = "boulingua.github.io/afl"` (keep this block
      **last** under `[params]` — the TOML sub-table trap)
    - `[[menu.main]]` sections mirroring `content/`: Script · A1 · A2 · B1 ·
      Materials · About · Legal.
-3. **Regenerate brand assets** — `python brand/make_icon.py` to render the
-   pentagon + favicons at `#4A23C7`; confirm `data/accents.yaml` already carries
-   the `afl` row (it does: accent `#4A23C7`, hover `#3B1CA0`, dark `#977EE7`) so
-   no CSS is edited.
-4. **Fill legal placeholders** — the ⟨…⟩ fields in `impressum` / `datenschutz` /
+4. **Regenerate brand assets** — the kit's `brand/make_icon.py` renders the
+   pentagon + favicons at `#4A23C7` into this repo's `brand/`; confirm the kit's
+   `data/accents.yaml` already carries the `afl` row (it does: accent `#4A23C7`,
+   hover `#3B1CA0`, dark `#977EE7`) so no CSS is edited.
+5. **Fill legal placeholders** — the ⟨…⟩ fields in `impressum` / `datenschutz` /
    `haftungsausschluss`; keep the VG Wort METIS disclosure in `datenschutz`.
-5. **First green build** — `hugo server` locally, then push to `main` so
-   `build-deploy.yml` builds, runs the gate battery, and deploys to GitHub Pages;
-   enable Pages (source: GitHub Actions). Milestone: a live, empty-but-styled
-   Arabic-accent site with the RTL font wired.
+6. **First green build** — `hugo server` locally, then push to `main` so
+   `deploy.yml` builds with `--panicOnWarning`, runs the gate battery, and
+   deploys to GitHub Pages; enable Pages (source: GitHub Actions). Milestone: a
+   live, empty-but-styled Arabic-accent site with the RTL font wired.
 
 ---
 
@@ -230,12 +255,13 @@ unit incl. materials + audio.
   `downloads`, `callout`, `kicker`, `details`) — never raw HTML. Add an
   `{{< ar >}}` inline shortcode wrapping Arabic in `<span dir="rtl" lang="ar">`
   and a `dir`-aware block callout for worked Arabic examples.
-- **RTL/bidi CSS.** Extend `assets/css/custom.css` with logical properties and a
+- **RTL/bidi CSS.** Lands in the kit (F4b), not here — logical properties and a
   `[dir="rtl"]` / `:lang(ar)` layer so Arabic runs, tables and lists align
-  right while the English chrome stays LTR; self-host Noto Naskh Arabic + Amiri
+  right while the English chrome stays LTR. It is shared with `pfa` and belongs
+  upstream for that reason; self-host Noto Naskh Arabic + Amiri
   WOFF2 with `unicode-range` splits (§2).
-- **Materials pipeline (committed).** Decks from **slidegen** (Beamer) and
-  worksheets from **sheetgen** — both already **XeLaTeX + fontspec**, so add an
+- **Materials pipeline (committed).** Decks and worksheets from the kit's
+  LaTeX templates (`kit/latex/`) — both already **XeLaTeX + fontspec**, so add an
   Arabic branch using **polyglossia + bidi** (or `\arabicfont` via `fontspec`)
   with Amiri/Noto Naskh, `\setmainlanguage{english}` +
   `\setotherlanguage{arabic}`, RTL environments for Arabic blocks. Build locally
@@ -245,13 +271,13 @@ unit incl. materials + audio.
 - **Audio — blocked on licence, not on tooling.** No Arabic Piper voice carries
   a usable licence (§2), so `afl` ships **recorded human audio** for A1 core
   vocabulary and dialogue where a native reader can be arranged and
-  **transcript-only** elsewhere; audiogen coverage is declared partial in every
+  **transcript-only** elsewhere; audio coverage is declared partial in every
   phase acceptance. Keep the plumbing as specified — OGG/Opus committed under
   `static/materials/audio/`, referenced through the `audio-block` partial, with
   the unit page rendering its `<details>` transcript and no player where there
   is no file — so that a future licence-clear `ar_*` voice drops in without a
-  content change. `afl`'s row in `audiogen/voices.yml` (→ `kit/audio/voices.yml`
-  at F1) is the one place that changes when it does; the ID is never typed here.
+  content change. `afl`'s row in `kit/audio/voices.yml` is the one place that
+  changes when it does; the ID is never typed here.
 - **Thumbnails & downloads.** `render_thumbs.py` for deck/worksheet previews;
   `verify_downloads.py` gate confirms every referenced material exists and is
   attributed. Downloads hub and materials hub carry **no** VG Wort pixel (§7).
@@ -260,7 +286,7 @@ unit incl. materials + audio.
 
 ## 7. VG Wort — pixel assignment for ALL content pages
 
-**Required and non-skippable.** Per `pagegen/docs/vgwort-standard.md`, every
+**Required and non-skippable.** Per `kit/docs/vgwort-standard.md`, every
 editorial page ≥ 1800 rendered characters gets exactly **one** VG Wort Zählmarke
 on exactly **one** URL. This is the author's statutory remuneration right, not
 tracking — emitted static, JS-free, no consent gate, loading eagerly for every
@@ -295,10 +321,11 @@ reader.
 
 ## 8. Milestones & sequencing
 
-- **M0 — Instantiation (S/M).** §3 complete: site copied, `hugo.toml` set, brand
-  regenerated, legal filled, first green Pages deploy. *Depends on:* nothing.
+- **M0 — Instantiation (S/M).** §3 complete: repo standing on the kit module,
+  `_materials/` vendored, `hugo.toml` set, brand regenerated, legal filled,
+  first green Pages deploy. *Depends on:* nothing.
 - **M1 — RTL foundation (L).** Arabic web fonts self-hosted, `{{< ar >}}`
-  shortcode, RTL/bidi CSS layer, slidegen/sheetgen Arabic branch, audio route
+  shortcode, RTL/bidi CSS layer, the kit's LaTeX Arabic branch, audio route
   settled per §2. *Depends on:* M0. **This is the gating technical milestone** — no
   content authoring at scale until RTL renders correctly on site and in PDFs.
 - **M2 — Script stage live (M).** `content/script/` (6–8 units) + glossary +
