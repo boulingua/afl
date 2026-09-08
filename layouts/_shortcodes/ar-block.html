@@ -1,0 +1,25 @@
+{{/*
+  ar-block — a block of Arabic (dialogue, model text, worked example) set
+  right-to-left as a whole, with the English scaffolding around it left
+  untouched. Inner Markdown is rendered, so lists, tables and emphasis work
+  inside the block.
+
+  Args (all optional):
+    title = a short English label rendered above the block (LTR)
+    dir   = "rtl" (default) | "auto" — use "auto" only for mixed material
+            whose first strong character reliably sets the direction
+
+  Example:
+    {{< ar-block title="Dialogue — at the café" >}}
+    — مَرْحَبًا، كَيْفَ حالُكِ؟
+    — بِخَيْرٍ، شُكْرًا.
+    {{< /ar-block >}}
+*/}}
+{{- $title := .Get "title" -}}
+{{- $dir := or (.Get "dir") "rtl" -}}
+<div class="ar-block">
+  {{- with $title }}<div class="ar-block-title" dir="ltr" lang="en">{{ . }}</div>{{ end }}
+  <div class="ar-block-body" dir="{{ $dir }}" lang="ar">
+  {{ .Inner | .Page.RenderString (dict "display" "block") }}
+  </div>
+</div>

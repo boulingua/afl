@@ -1,0 +1,28 @@
+{{- /* Audio section for a unit. Reads data/audio/<filename>.json (generated
+       by scripts/build_audio.py with a native Arabic voice — see ROADMAP.md
+       §2/§6 on the Piper voice and its vocalised-MSA smoke test) and renders
+       an accessible "Listen" section: one player per segment with its
+       transcript. The transcript is Arabic, so it is wrapped `dir="rtl"
+       lang="ar"` like every other Arabic run on the site. Degrades to
+       nothing when no audio exists for the unit yet. */ -}}
+{{- $key := .File.ContentBaseName -}}
+{{- with (index hugo.Data.audio $key) -}}
+<section class="audio-section" id="audio">
+  <h2>{{ i18n "listen" | default "Listen" }}</h2>
+  <p class="audio-intro">{{ i18n "audio_intro" | default "Native-voice audio for this unit." }}</p>
+  {{- range . }}
+  <div class="audio-item">
+    <div class="audio-item-head">
+      <span class="audio-label">{{ .label }}</span>
+      <audio controls preload="none" src="{{ .file | relURL }}">
+        {{ i18n "audio_unsupported" | default "Your browser does not support audio playback." }}
+      </audio>
+    </div>
+    <details class="audio-transcript">
+      <summary>{{ i18n "show_transcript" | default "Show transcript" }}</summary>
+      <p class="ar" dir="rtl" lang="ar">{{ .transcript | replaceRE "\n" "<br>" | safeHTML }}</p>
+    </details>
+  </div>
+  {{- end }}
+</section>
+{{- end -}}

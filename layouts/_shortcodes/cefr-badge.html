@@ -1,0 +1,13 @@
+{{/*
+  cefr-badge — the round level marker used on level landings and cards.
+  The colour comes from the .cefr-badge.{a1,a2,b1,…} rules in custom.css.
+
+  Args:
+    0 / level = A1 | A2 | B1 | B2 | C1  (or a short label such as "pre-A1")
+
+  Example:
+    {{< cefr-badge "A1" >}}
+*/}}
+{{- $level := or (.Get "level") (.Get 0) "A1" -}}
+{{- $class := $level | lower | replaceRE "[^a-z0-9]" "" -}}
+<span class="cefr-badge {{ $class }}" aria-label="CEFR level {{ $level }}">{{ $level }}</span>

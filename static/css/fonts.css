@@ -1,0 +1,62 @@
+/* Self-hosted webfonts — no third-party CDN (GDPR-clean, no render-blocking
+   external font request). woff2, font-display:swap. Paths are relative
+   to this file at /<site>/css/, fonts at /<site>/fonts/. */
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal; font-weight: 300; font-display: swap;
+  src: url("../fonts/source-sans-3-v19-latin_latin-ext-300.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../fonts/source-sans-3-v19-latin_latin-ext-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal; font-weight: 500; font-display: swap;
+  src: url("../fonts/source-sans-3-v19-latin_latin-ext-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal; font-weight: 600; font-display: swap;
+  src: url("../fonts/source-sans-3-v19-latin_latin-ext-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal; font-weight: 700; font-display: swap;
+  src: url("../fonts/source-sans-3-v19-latin_latin-ext-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../fonts/jetbrains-mono-v24-latin_latin-ext-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal; font-weight: 500; font-display: swap;
+  src: url("../fonts/jetbrains-mono-v24-latin_latin-ext-500.woff2") format("woff2");
+}
+
+/* ── Arabic ─────────────────────────────────────────────────────────────
+   Noto Naskh Arabic (SIL Open Font License 1.1, © 2019–2020 Google LLC),
+   subsetted to the Arabic blocks + the bidi/joining controls and served from
+   this site. The `unicode-range` split is what keeps the Latin scaffolding
+   prose in Source Sans 3 while every Arabic run — including the tashkīl
+   (short-vowel marks) the beginner levels depend on — comes from the Naskh
+   face. See static/fonts/OFL.txt for the licence and ROADMAP.md §2. */
+
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../fonts/noto-naskh-arabic-v2004-arabic-regular.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF,
+                 U+FE70-FEFF, U+200C-200F, U+2066-2069;
+}
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal; font-weight: 700; font-display: swap;
+  src: url("../fonts/noto-naskh-arabic-v2004-arabic-700.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF,
+                 U+FE70-FEFF, U+200C-200F, U+2066-2069;
+}

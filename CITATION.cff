@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you reference this resource, please cite it as below."
+title: "AFL — Arabic as a Foreign Language (Modern Standard Arabic, pre-A1 script stage and CEFR A1–B1)"
+type: dataset
+authors:
+  - family-names: "Le Boulanger"
+    given-names: "S."
+    email: "277736839+s-leboulanger@users.noreply.github.com"
+license: MIT
+repository-code: "https://github.com/boulingua/afl"
+url: "https://boulingua.github.io/afl/"
+keywords:
+  - Arabic
+  - Modern Standard Arabic
+  - CEFR
+  - open educational resources

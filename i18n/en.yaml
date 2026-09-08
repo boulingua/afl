@@ -1,0 +1,16 @@
+presentations: { other: "Slide decks" }
+worksheets: { other: "Worksheets" }
+presentation: { other: "Slide deck" }
+worksheet: { other: "Worksheet" }
+presentation_preview_alt: { other: "Slide-deck preview" }
+worksheet_preview_alt: { other: "Worksheet preview" }
+download: { other: "Download" }
+downloads: { other: "Downloads" }
+listen: { other: "Listen" }
+audio_intro: { other: "Vocabulary, dialogues and texts from this unit as audio, read by a native voice. The spoken text is printed under each player." }
+audio_unsupported: { other: "Your browser does not support audio playback." }
+show_transcript: { other: "Show transcript" }
+exam: { other: "Exam" }
+menu_toggle: { other: "Open / close the main menu" }
+colorscheme_toggle: { other: "Switch colour scheme (light / dark)" }
+colorscheme_toggle_short: { other: "Light / dark" }

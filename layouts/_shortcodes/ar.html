@@ -1,0 +1,25 @@
+{{/*
+  ar — inline Arabic run.
+
+  The site chrome and the scaffolding prose are English and left-to-right;
+  every Arabic string is therefore wrapped explicitly rather than left to the
+  Unicode bidirectional algorithm, which mis-orders trailing punctuation,
+  numerals and parentheses when an Arabic run is embedded in an LTR paragraph.
+
+  Args (all optional):
+    0 / text  = the Arabic string (use the positional form for short runs)
+    tr        = DIN 31635 transliteration, rendered after the Arabic in
+                parentheses; used up to A2 and dropped from B1 (ROADMAP §2)
+    gloss     = English gloss, rendered after the transliteration
+  Inner text is used when no positional argument is given, so both
+  {{< ar "مَرْحَبًا" >}} and {{< ar >}}مَرْحَبًا{{< /ar >}} work.
+
+  Example:
+    {{< ar "الْمَدينَةُ الْقَديمَة" tr="al-madīna al-qadīma" gloss="the Old City" >}}
+*/}}
+{{- $text := or (.Get "text") (.Get 0) (trim .Inner " \n") -}}
+{{- $tr := .Get "tr" -}}
+{{- $gloss := .Get "gloss" -}}
+<span class="ar" dir="rtl" lang="ar">{{ $text }}</span>
+{{- with $tr }} <span class="ar-tr" dir="ltr" lang="ar-Latn">{{ . }}</span>{{ end -}}
+{{- with $gloss }} <span class="ar-gloss" dir="ltr" lang="en">‘{{ . }}’</span>{{ end -}}
